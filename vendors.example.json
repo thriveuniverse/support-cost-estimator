@@ -1,0 +1,82 @@
+[
+  {
+    "id": "vendor_a_cloudco",
+    "name": "CloudCo Premier Support",
+    "currency": "USD",
+    "pricing_model": "percent_spend",
+    "rules": {
+      "percent": 9.5,
+      "min_fee": 2500
+    },
+    "sla_caps": {
+      "response_minutes_by_sev": { "sev1": 15, "sev2": 60, "sev3": 240 },
+      "resolution_hours_by_sev": { "sev1": 4, "sev2": 12, "sev3": 24 },
+      "coverage": "24x7"
+    },
+    "notes": "Modeled after hyperscaler premium tiers with deep cloud integration."
+  },
+  {
+    "id": "vendor_b_scaler",
+    "name": "ScalerOps Growth Plan",
+    "currency": "USD",
+    "pricing_model": "tiered",
+    "rules": {
+      "thresholds": [
+        { "up_to_tickets": 75, "monthly_fee": 1800 },
+        { "up_to_tickets": 250, "monthly_fee": 4200 },
+        { "up_to_tickets": 600, "monthly_fee": 7900 },
+        { "up_to_tickets": 1200, "monthly_fee": 12800 }
+      ]
+    },
+    "sla_caps": {
+      "response_minutes_by_sev": { "sev1": 30, "sev2": 120, "sev3": 480 },
+      "resolution_hours_by_sev": { "sev1": 8, "sev2": 24, "sev3": 72 },
+      "coverage": "16x5"
+    },
+    "notes": "Mirrors mid-tier managed support common with regional MSPs."
+  },
+  {
+    "id": "vendor_c_eusupport",
+    "name": "EuroAssist On-Demand",
+    "currency": "EUR",
+    "pricing_model": "per_incident",
+    "rules": {
+      "price_per_incident": {
+        "sev1": 450,
+        "sev2": 160,
+        "sev3": 55
+      }
+    },
+    "sla_caps": {
+      "response_minutes_by_sev": { "sev1": 60, "sev2": 240, "sev3": 1440 },
+      "resolution_hours_by_sev": { "sev1": 12, "sev2": 48, "sev3": 120 },
+      "coverage": "business"
+    },
+    "notes": "Pay-as-you-go field engineers popular with EU boutique vendors."
+  },
+  {
+    "id": "vendor_d_global",
+    "name": "Global Support Solutions",
+    "currency": "GBP",
+    "pricing_model": "retainer_addons",
+    "rules": {
+      "base_retainer": 4800,
+      "addons": {
+        "extra_language_surcharge": 900,
+        "phone_support_fee": 600,
+        "24x7_uplift_percent": 20,
+        "channel_mix_adjustments": {
+          "email": 0,
+          "chat": 250,
+          "phone": 400
+        }
+      }
+    },
+    "sla_caps": {
+      "response_minutes_by_sev": { "sev1": 20, "sev2": 80, "sev3": 240 },
+      "resolution_hours_by_sev": { "sev1": 6, "sev2": 18, "sev3": 36 },
+      "coverage": "24x7"
+    },
+    "notes": "Enterprise retainer with modular add-ons inspired by global outsourcers."
+  }
+]

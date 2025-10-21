@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Cost Estimator</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        --page-gradient: linear-gradient(135deg, #eff2ff 0%, #f7f9ff 55%, #ffffff 100%);
+        --panel-bg: rgba(255, 255, 255, 0.92);
+        --panel-border: rgba(72, 86, 165, 0.18);
+        --panel-shadow: 0 22px 48px rgba(45, 62, 134, 0.15);
+        --accent: #3d63ff;
+        --accent-strong: #1d3fd1;
+        --accent-muted: rgba(61, 99, 255, 0.12);
+        --text-primary: #182042;
+        --text-secondary: #545b86;
+        --badge-success: #2bb57e;
+        --badge-warning: #ff8b3d;
+        --error-bg: rgba(220, 53, 69, 0.12);
+        --error-border: rgba(220, 53, 69, 0.45);
+        --radius-lg: 18px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page-gradient);
+        color: var(--text-primary);
+        font-family: inherit;
+        line-height: 1.6;
+      }
+
+      code {
+        background: rgba(24, 32, 66, 0.08);
+        border-radius: 6px;
+        padding: 0.15rem 0.35rem;
+        font-size: 0.85em;
+      }
+
+      .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 4rem;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #3047e4 0%, #5a76ff 55%, #7c8fff 100%);
+        color: #fff;
+        padding: 2.4rem clamp(1.5rem, 4vw, 3.5rem);
+        border-radius: calc(var(--radius-lg) + 6px);
+        box-shadow: 0 28px 60px rgba(36, 53, 138, 0.25);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::after {
+        content: '';
+        position: absolute;
+        inset: -40% 30% auto -25%;
+        height: 160%;
+        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.35), transparent 60%);
+        opacity: 0.65;
+        pointer-events: none;
+      }
+
+      .hero-eyebrow {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        opacity: 0.75;
+      }
+
+      .hero h1 {
+        margin: 0.4rem 0 0.6rem;
+        font-size: clamp(2rem, 4vw, 2.6rem);
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 52ch;
+        opacity: 0.88;
+      }
+
+      .hero-highlights {
+        margin-top: 1.75rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+
+      .hero-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        padding: 0.45rem 1rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: 0.01em;
+        backdrop-filter: blur(4px);
+      }
+
+      .hero-pill::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.85);
+      }
+
+      .layout {
+        margin-top: 2.4rem;
+        display: grid;
+        gap: 1.8rem;
+        grid-template-columns: minmax(320px, 1.4fr) minmax(260px, 1fr);
+        align-items: start;
+      }
+
+      .panel {
+        background: var(--panel-bg);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--panel-border);
+        box-shadow: var(--panel-shadow);
+        padding: 1.75rem;
+        backdrop-filter: blur(12px);
+      }
+
+      .panel + .panel {
+        margin-top: 1.8rem;
+      }
+
+      .results-panel {
+        margin-top: 2.4rem;
+      }
+
+      .panel h2 {
+        margin: 0 0 1rem;
+        font-size: 1.2rem;
+        letter-spacing: 0.01em;
+      }
+
+      .panel p {
+        color: var(--text-secondary);
+        margin-top: 0;
+      }
+
+      .results-summary {
+        margin: 0 0 1.2rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .results-summary strong {
+        color: var(--text-primary);
+      }
+
+      .inputs-form {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .inputs-form fieldset {
+        border: 1px solid rgba(61, 99, 255, 0.12);
+        border-radius: 14px;
+        padding: 1.2rem 1.35rem 1.35rem;
+        background: rgba(244, 246, 255, 0.6);
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .inputs-form legend {
+        font-weight: 700;
+        color: var(--text-primary);
+        padding: 0 0.2rem;
+      }
+
+      label {
+        display: grid;
+        gap: 0.35rem;
+        font-size: 0.92rem;
+        color: var(--text-secondary);
+      }
+
+      input[type='number'],
+      input[type='text'],
+      select,
+      textarea {
+        padding: 0.6rem 0.75rem;
+        border-radius: 10px;
+        border: 1px solid rgba(63, 83, 151, 0.25);
+        background: #ffffff;
+        font-size: 0.95rem;
+        font-family: inherit;
+        color: var(--text-primary);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      }
+
+      input[type='number']:focus-visible,
+      input[type='text']:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(61, 99, 255, 0.18);
+        outline: none;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 220px;
+        font-family: 'Fira Code', 'Source Code Pro', monospace;
+        line-height: 1.4;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(63, 83, 151, 0.2);
+        box-shadow: inset 0 1px 3px rgba(24, 32, 66, 0.08);
+      }
+
+      .checkbox-group {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .checkbox-group label {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 0;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        border: 1px solid rgba(63, 83, 151, 0.25);
+        background: rgba(255, 255, 255, 0.65);
+        font-size: 0.85rem;
+      }
+
+      .checkbox-group input[type='checkbox'] {
+        width: 16px;
+        height: 16px;
+      }
+
+      .button-row {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+      }
+
+      button {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.6rem 1.6rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 12px 22px rgba(61, 99, 255, 0.28);
+      }
+
+      button:hover:not(:disabled),
+      button:focus-visible:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 30px rgba(61, 99, 255, 0.32);
+      }
+
+      button:disabled {
+        background: rgba(116, 132, 182, 0.35);
+        color: rgba(255, 255, 255, 0.7);
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+
+      button.secondary {
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--accent);
+        border: 1px solid rgba(61, 99, 255, 0.35);
+        box-shadow: none;
+      }
+
+      button.secondary:hover:not(:disabled) {
+        background: rgba(61, 99, 255, 0.12);
+        color: var(--accent-strong);
+      }
+
+      button.ghost {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid rgba(61, 99, 255, 0.3);
+        box-shadow: none;
+        padding: 0.4rem 1rem;
+      }
+
+      button.ghost:hover,
+      button.ghost:focus-visible {
+        background: rgba(61, 99, 255, 0.1);
+        color: var(--accent-strong);
+      }
+
+      .file-input {
+        display: grid;
+        gap: 0.4rem;
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .file-input input[type='file'] {
+        padding: 0.45rem;
+        border: 1px dashed rgba(63, 83, 151, 0.3);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.6);
+      }
+
+      .file-input input[type='file']::file-selector-button {
+        background: linear-gradient(135deg, rgba(61, 99, 255, 0.18), rgba(61, 99, 255, 0.32));
+        border: 1px solid rgba(61, 99, 255, 0.45);
+        color: var(--accent-strong);
+        border-radius: 999px;
+        padding: 0.35rem 1rem;
+        margin-right: 1rem;
+        cursor: pointer;
+      }
+
+      .saved-scenarios-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+
+      .saved-scenarios-header h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+      }
+
+      .saved-scenarios-header p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      .empty-hint {
+        margin: 0.75rem 0 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        background: rgba(61, 99, 255, 0.08);
+        border: 1px dashed rgba(61, 99, 255, 0.2);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+      }
+
+      .scenario-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.75rem 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .scenario-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(63, 83, 151, 0.18);
+        box-shadow: 0 10px 20px rgba(37, 51, 111, 0.08);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      }
+
+      .scenario-list li:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(37, 51, 111, 0.12);
+      }
+
+      .scenario-list li.active {
+        border-color: rgba(61, 99, 255, 0.7);
+        box-shadow: 0 16px 32px rgba(61, 99, 255, 0.18);
+      }
+
+      .scenario-list__body {
+        display: grid;
+        gap: 0.25rem;
+      }
+
+      .scenario-list__name {
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .scenario-list__meta {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      .scenario-list__actions {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+      }
+
+      .error-list {
+        border-radius: 14px;
+        border: 1px solid var(--error-border);
+        background: var(--error-bg);
+        padding: 1rem 1.2rem;
+        color: #861421;
+        font-size: 0.9rem;
+      }
+
+      .error-list strong {
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+
+      .error-list ul {
+        margin: 0.5rem 0 0;
+        padding-left: 1.25rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+        font-variant-numeric: tabular-nums;
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      thead {
+        background: rgba(61, 99, 255, 0.1);
+      }
+
+      th {
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        color: var(--text-secondary);
+        padding: 0.85rem 1rem;
+      }
+
+      td {
+        padding: 0.85rem 1rem;
+        border-top: 1px solid rgba(63, 83, 151, 0.12);
+        color: var(--text-primary);
+      }
+
+      tbody tr:nth-child(even) {
+        background: rgba(61, 99, 255, 0.05);
+      }
+
+      tbody tr:hover {
+        background: rgba(61, 99, 255, 0.08);
+      }
+
+      th:nth-child(2),
+      th:nth-child(3),
+      th:nth-child(4),
+      td:nth-child(2),
+      td:nth-child(3),
+      td:nth-child(4) {
+        text-align: right;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 999px;
+        padding: 0.15rem 0.7rem;
+        font-weight: 600;
+        font-size: 0.82rem;
+        letter-spacing: 0.02em;
+      }
+
+      .badge::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.7;
+      }
+
+      .badge.success {
+        background: rgba(43, 181, 126, 0.15);
+        color: var(--badge-success);
+      }
+
+      .badge.warning {
+        background: rgba(255, 139, 61, 0.15);
+        color: var(--badge-warning);
+      }
+
+      .chart-grid {
+        display: grid;
+        gap: 1.2rem;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        margin-top: 1.5rem;
+      }
+
+      .chart-placeholder {
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(63, 83, 151, 0.12);
+        border-radius: 16px;
+        padding: 1.4rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        box-shadow: 0 18px 32px rgba(37, 51, 111, 0.1);
+      }
+
+      .chart-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        letter-spacing: 0.01em;
+      }
+
+      .chart-empty {
+        margin: 0;
+        color: var(--text-secondary);
+      }
+
+      .bar-row {
+        display: flex;
+        gap: 0.9rem;
+        align-items: center;
+      }
+
+      .bar-label {
+        flex: 0 0 120px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .bar-track {
+        flex: 1;
+        background: rgba(61, 99, 255, 0.12);
+        border-radius: 999px;
+        height: 36px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .bar-fill {
+        border-radius: inherit;
+        background: linear-gradient(90deg, rgba(61, 99, 255, 0.9), rgba(97, 125, 255, 0.95));
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 0.75rem;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.85rem;
+        height: 100%;
+        transition: width 0.3s ease;
+      }
+
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .hero {
+          padding: 2.2rem 1.6rem;
+        }
+
+        .button-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        button,
+        button.secondary {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .bar-label {
+          flex: 0 0 100px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero" role="banner">
+        <span class="hero-eyebrow">Operations toolkit</span>
+        <h1>Support Cost Estimator</h1>
+        <p>
+          Paste or load vendor pricing configs, enter your support metrics, and compare
+          scenarios instantly. The estimator leverages <code>window.SupportEstimator</code>
+          for projections, SLA checks, and cost modeling.
+        </p>
+        <div class="hero-highlights" role="list">
+          <span class="hero-pill" role="listitem">Projection-ready scenarios</span>
+          <span class="hero-pill" role="listitem">SLA-aware comparisons</span>
+          <span class="hero-pill" role="listitem">Export to CSV &amp; JSON</span>
+        </div>
+      </header>
+
+      <div class="layout">
+        <section class="panel" aria-labelledby="inputs-panel">
+          <h2 id="inputs-panel">Inputs</h2>
+          <form id="scenario-form" class="inputs-form">
+            <fieldset>
+              <legend>Scenario</legend>
+              <label>
+                Scenario Name
+                <input type="text" id="scenario-name" value="Current Baseline" required />
+              </label>
+              <label>
+                Output Currency
+                <select id="currency">
+                  <option value="USD" selected>USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Current Metrics</legend>
+              <label>
+                Monthly Tickets Total
+                <input type="number" id="monthly-tickets" value="400" min="0" required />
+              </label>
+              <label>
+                Severity Breakdown (Sev1 / Sev2 / Sev3)
+                <div class="checkbox-group" role="group" aria-label="Tickets by severity">
+                  <label>
+                    Sev1
+                    <input type="number" id="sev1" value="40" min="0" required />
+                  </label>
+                  <label>
+                    Sev2
+                    <input type="number" id="sev2" value="160" min="0" required />
+                  </label>
+                  <label>
+                    Sev3
+                    <input type="number" id="sev3" value="200" min="0" required />
+                  </label>
+                </div>
+              </label>
+              <label>
+                Current Monthly Cloud Spend (USD)
+                <input type="number" id="cloud-spend" value="85000" min="0" required />
+              </label>
+              <label>
+                Current Support Agents
+                <input type="number" id="agents" value="25" min="0" required />
+              </label>
+              <label>
+                Languages Covered
+                <input type="number" id="languages" value="3" min="1" />
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Projections</legend>
+              <label>
+                Coverage Requirement
+                <select id="coverage">
+                  <option value="business">Business Hours</option>
+                  <option value="16x5">16x5</option>
+                  <option value="24x7" selected>24x7</option>
+                </select>
+              </label>
+              <label>
+                Growth Rate % (Monthly Tickets)
+                <input type="number" id="growth-rate" value="5" />
+              </label>
+              <label>
+                Cloud Spend Growth %
+                <input type="number" id="spend-growth" value="3" />
+              </label>
+              <label>
+                Months to Project
+                <input type="number" id="months" value="12" min="1" />
+              </label>
+              <label>
+                Planned Agents Change
+                <input type="number" id="agents-change" value="4" />
+              </label>
+              <div class="checkbox-group" role="group" aria-label="Channels">
+                <label><input type="checkbox" id="channel-email" checked /> Email</label>
+                <label><input type="checkbox" id="channel-chat" checked /> Chat</label>
+                <label><input type="checkbox" id="channel-phone" checked /> Phone</label>
+              </div>
+              <label>
+                Channel Mix (Email / Chat / Phone)
+                <div class="checkbox-group" role="group" aria-label="Channel mix percentages">
+                  <label>
+                    Email %
+                    <input type="number" id="mix-email" value="60" min="0" max="100" />
+                  </label>
+                  <label>
+                    Chat %
+                    <input type="number" id="mix-chat" value="30" min="0" max="100" />
+                  </label>
+                  <label>
+                    Phone %
+                    <input type="number" id="mix-phone" value="10" min="0" max="100" />
+                  </label>
+                </div>
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Required SLAs</legend>
+              <label>
+                Response SLA (minutes) Sev1 / Sev2 / Sev3
+                <div class="checkbox-group" role="group" aria-label="Response SLA minutes">
+                  <label>
+                    Sev1
+                    <input type="number" id="resp-sev1" value="30" min="1" />
+                  </label>
+                  <label>
+                    Sev2
+                    <input type="number" id="resp-sev2" value="120" min="1" />
+                  </label>
+                  <label>
+                    Sev3
+                    <input type="number" id="resp-sev3" value="360" min="1" />
+                  </label>
+                </div>
+              </label>
+              <label>
+                Resolution SLA (hours) Sev1 / Sev2 / Sev3
+                <div class="checkbox-group" role="group" aria-label="Resolution SLA hours">
+                  <label>
+                    Sev1
+                    <input type="number" id="res-sev1" value="6" min="1" />
+                  </label>
+                  <label>
+                    Sev2
+                    <input type="number" id="res-sev2" value="24" min="1" />
+                  </label>
+                  <label>
+                    Sev3
+                    <input type="number" id="res-sev3" value="72" min="1" />
+                  </label>
+                </div>
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Exchange Rates (Base = 1)</legend>
+              <div class="checkbox-group" role="group" aria-label="Exchange rates">
+                <label>
+                  USD
+                  <input type="number" id="rate-usd" value="1" min="0" step="0.01" />
+                </label>
+                <label>
+                  EUR
+                  <input type="number" id="rate-eur" value="1.05" min="0" step="0.01" />
+                </label>
+                <label>
+                  GBP
+                  <input type="number" id="rate-gbp" value="0.85" min="0" step="0.01" />
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="button-row">
+              <button type="submit" id="compare-btn">Compare Now</button>
+              <button type="button" id="add-scenario-btn" class="secondary">Add Scenario</button>
+              <button type="button" id="export-json-btn" class="secondary">Export JSON</button>
+              <button type="button" id="export-csv-btn" class="secondary">Export CSV</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" aria-labelledby="vendor-loader">
+          <h2 id="vendor-loader">Vendor Config Loader</h2>
+          <p>Paste or load vendor pricing JSON. Four sample vendors will load by default.</p>
+          <textarea id="vendor-json" spellcheck="false"></textarea>
+          <label class="file-input">
+            <span>Load from file</span>
+            <input type="file" id="vendor-file" accept="application/json" />
+          </label>
+          <div class="saved-scenarios-header">
+            <h3>Saved scenarios</h3>
+            <p>Store mixes you want to rerun later.</p>
+          </div>
+          <p class="empty-hint" id="scenario-empty">Add a scenario to save it here.</p>
+          <ul class="scenario-list" id="scenario-list" aria-live="polite"></ul>
+        </section>
+      </div>
+
+      <section class="panel results-panel" aria-labelledby="results-panel">
+        <h2 id="results-panel">Results</h2>
+        <p class="results-summary" id="results-summary">Run a scenario to see projected costs.</p>
+        <div id="validation-errors" hidden></div>
+        <table id="results-table" aria-live="polite">
+          <thead>
+            <tr>
+              <th>Vendor</th>
+              <th>Monthly</th>
+              <th>Annual</th>
+              <th>Cost/Ticket</th>
+              <th>SLA Fit</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div class="chart-grid">
+          <div class="chart-placeholder" id="monthly-cost-chart" aria-live="polite">
+            <div class="chart-title">Monthly cost comparison</div>
+            <p class="chart-empty">Run a scenario to populate this chart.</p>
+          </div>
+          <div class="chart-placeholder" id="annual-cost-chart" aria-live="polite">
+            <div class="chart-title">Annualized cost comparison</div>
+            <p class="chart-empty">Run a scenario to populate this chart.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="support_cost_calculator.js"></script>
+    <script>
+      (function () {
+        const DEFAULT_VENDOR_JSON = `[
+  {
+    "id": "vendor_a_cloudco",
+    "name": "CloudCo Premier Support",
+    "currency": "USD",
+    "pricing_model": "percent_spend",
+    "rules": {
+      "percent": 9.5,
+      "min_fee": 2500
+    },
+    "sla_caps": {
+      "response_minutes_by_sev": { "sev1": 15, "sev2": 60, "sev3": 240 },
+      "resolution_hours_by_sev": { "sev1": 4, "sev2": 12, "sev3": 24 },
+      "coverage": "24x7"
+    },
+    "notes": "Modeled after hyperscaler premium tiers with deep cloud integration."
+  },
+  {
+    "id": "vendor_b_scaler",
+    "name": "ScalerOps Growth Plan",
+    "currency": "USD",
+    "pricing_model": "tiered",
+    "rules": {
+      "thresholds": [
+        { "up_to_tickets": 75, "monthly_fee": 1800 },
+        { "up_to_tickets": 250, "monthly_fee": 4200 },
+        { "up_to_tickets": 600, "monthly_fee": 7900 },
+        { "up_to_tickets": 1200, "monthly_fee": 12800 }
+      ]
+    },
+    "sla_caps": {
+      "response_minutes_by_sev": { "sev1": 30, "sev2": 120, "sev3": 480 },
+      "resolution_hours_by_sev": { "sev1": 8, "sev2": 24, "sev3": 72 },
+      "coverage": "16x5"
+    },
+    "notes": "Mirrors mid-tier managed support common with regional MSPs."
+  },
+  {
+    "id": "vendor_c_eusupport",
+    "name": "EuroAssist On-Demand",
+    "currency": "EUR",
+    "pricing_model": "per_incident",
+    "rules": {
+      "price_per_incident": {
+        "sev1": 450,
+        "sev2": 160,
+        "sev3": 55
+      }
+    },
+    "sla_caps": {
+      "response_minutes_by_sev": { "sev1": 60, "sev2": 240, "sev3": 1440 },
+      "resolution_hours_by_sev": { "sev1": 12, "sev2": 48, "sev3": 120 },
+      "coverage": "business"
+    },
+    "notes": "Pay-as-you-go field engineers popular with EU boutique vendors."
+  },
+  {
+    "id": "vendor_d_global",
+    "name": "Global Support Solutions",
+    "currency": "GBP",
+    "pricing_model": "retainer_addons",
+    "rules": {
+      "base_retainer": 4800,
+      "addons": {
+        "extra_language_surcharge": 900,
+        "phone_support_fee": 600,
+        "24x7_uplift_percent": 20,
+        "channel_mix_adjustments": {
+          "email": 0,
+          "chat": 250,
+          "phone": 400
+        }
+      }
+    },
+    "sla_caps": {
+      "response_minutes_by_sev": { "sev1": 20, "sev2": 80, "sev3": 240 },
+      "resolution_hours_by_sev": { "sev1": 6, "sev2": 18, "sev3": 36 },
+      "coverage": "24x7"
+    },
+    "notes": "Enterprise retainer with modular add-ons inspired by global outsourcers."
+  }
+]
+`;
+        const vendorsTextarea = document.getElementById('vendor-json');
+        const vendorFileInput = document.getElementById('vendor-file');
+        const scenarioForm = document.getElementById('scenario-form');
+        const scenarioList = document.getElementById('scenario-list');
+        const scenarioEmpty = document.getElementById('scenario-empty');
+        const validationEl = document.getElementById('validation-errors');
+        const resultsSummary = document.getElementById('results-summary');
+        const resultsTableBody = document.querySelector('#results-table tbody');
+        const addScenarioBtn = document.getElementById('add-scenario-btn');
+        const exportJsonBtn = document.getElementById('export-json-btn');
+        const exportCsvBtn = document.getElementById('export-csv-btn');
+        const monthlyChartEl = document.getElementById('monthly-cost-chart');
+        const annualChartEl = document.getElementById('annual-cost-chart');
+
+        /** @type {import('./support_cost_calculator.js')} */
+        const Estimator = window.SupportEstimator;
+        const scenarios = [];
+        let lastComparison = null;
+
+        function buildScenarioMeta(scenario) {
+          const months = Number(scenario.months_to_project) || 0;
+          const growth = Number(scenario.growth_rate_percent) || 0;
+          const agentDelta = Number(scenario.planned_agents_change) || 0;
+
+          const parts = [];
+          if (months) {
+            parts.push(`${months} month${months === 1 ? '' : 's'} horizon`);
+          }
+          if (scenario.hours_of_coverage) {
+            parts.push(`${String(scenario.hours_of_coverage).toUpperCase()} coverage`);
+          }
+          if (growth) {
+            parts.push(`${growth}% ticket growth`);
+          }
+          if (agentDelta) {
+            const sign = agentDelta > 0 ? '+' : '';
+            parts.push(`${sign}${agentDelta} agents`);
+          }
+          if (!parts.length) {
+            parts.push('Custom scenario');
+          }
+          return parts.join(' • ');
+        }
+
+        function setActiveScenario(index) {
+          scenarioList.querySelectorAll('li').forEach((item) => {
+            item.classList.toggle('active', Number(item.dataset.index) === index);
+          });
+        }
+
+        function loadDefaultVendors() {
+          vendorsTextarea.value = DEFAULT_VENDOR_JSON;
+          fetch('vendors.example.json')
+            .then((res) => (res.ok ? res.text() : Promise.reject(new Error('load error'))))
+            .then((text) => {
+              vendorsTextarea.value = text;
+            })
+            .catch(() => {
+              vendorsTextarea.value = DEFAULT_VENDOR_JSON;
+            });
+        }
+
+        function readVendors() {
+          try {
+            const parsed = JSON.parse(vendorsTextarea.value || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (error) {
+            alert('Unable to parse vendor JSON. Please check the formatting.');
+            throw error;
+          }
+        }
+
+        function readScenarioFromForm() {
+          const channels = [];
+          if (document.getElementById('channel-email').checked) channels.push('email');
+          if (document.getElementById('channel-chat').checked) channels.push('chat');
+          if (document.getElementById('channel-phone').checked) channels.push('phone');
+
+          const mixEmail = Number(document.getElementById('mix-email').value) || 0;
+          const mixChat = Number(document.getElementById('mix-chat').value) || 0;
+          const mixPhone = Number(document.getElementById('mix-phone').value) || 0;
+          const mixTotal = mixEmail + mixChat + mixPhone;
+
+          const scenario = {
+            scenario_name: document.getElementById('scenario-name').value || 'Scenario',
+            monthly_tickets_total: Number(document.getElementById('monthly-tickets').value) || 0,
+            tickets_by_severity: {
+              sev1: Number(document.getElementById('sev1').value) || 0,
+              sev2: Number(document.getElementById('sev2').value) || 0,
+              sev3: Number(document.getElementById('sev3').value) || 0,
+            },
+            current_cloud_spend: Number(document.getElementById('cloud-spend').value) || 0,
+            current_agents: Number(document.getElementById('agents').value) || 0,
+            hours_of_coverage: document.getElementById('coverage').value,
+            channels,
+            languages_count: Number(document.getElementById('languages').value) || 1,
+            required_response_SLA_minutes: {
+              sev1: Number(document.getElementById('resp-sev1').value) || 0,
+              sev2: Number(document.getElementById('resp-sev2').value) || 0,
+              sev3: Number(document.getElementById('resp-sev3').value) || 0,
+            },
+            required_resolution_SLA_hours: {
+              sev1: Number(document.getElementById('res-sev1').value) || 0,
+              sev2: Number(document.getElementById('res-sev2').value) || 0,
+              sev3: Number(document.getElementById('res-sev3').value) || 0,
+            },
+            growth_rate_percent: Number(document.getElementById('growth-rate').value) || 0,
+            spend_growth_rate_percent: Number(document.getElementById('spend-growth').value) || 0,
+            months_to_project: Number(document.getElementById('months').value) || 1,
+            planned_agents_change: Number(document.getElementById('agents-change').value) || 0,
+            currency: document.getElementById('currency').value,
+            exchange_rates: {
+              USD: Number(document.getElementById('rate-usd').value) || 1,
+              EUR: Number(document.getElementById('rate-eur').value) || 1,
+              GBP: Number(document.getElementById('rate-gbp').value) || 1,
+            },
+          };
+
+          if (mixTotal > 0) {
+            scenario.channel_mix_percent = {
+              email: mixEmail,
+              chat: mixChat,
+              phone: mixPhone,
+            };
+          }
+
+          return scenario;
+        }
+
+        function renderValidation(errors) {
+          if (!errors || errors.length === 0) {
+            validationEl.hidden = true;
+            validationEl.className = '';
+            validationEl.innerHTML = '';
+            return;
+          }
+          validationEl.hidden = false;
+          validationEl.className = 'error-list';
+          validationEl.innerHTML = `<strong>Validation issues:</strong><ul>${errors
+            .map((err) => `<li>${err}</li>`)
+            .join('')}</ul>`;
+        }
+
+        function renderResults(comparison) {
+          lastComparison = comparison;
+          resultsTableBody.innerHTML = '';
+
+          if (resultsSummary) {
+            const vendorCount = comparison.results.length;
+            const scenarioLabel = comparison.scenario_name || 'Scenario';
+            resultsSummary.innerHTML = '';
+            const prefix = document.createTextNode(
+              `${vendorCount} vendor${vendorCount === 1 ? '' : 's'} evaluated for `
+            );
+            const highlight = document.createElement('strong');
+            highlight.textContent = scenarioLabel;
+            resultsSummary.appendChild(prefix);
+            resultsSummary.appendChild(highlight);
+          }
+
+          const rows = Estimator.toComparisonTable(comparison);
+          rows.forEach((row) => {
+            const tr = document.createElement('tr');
+            const assumptionsTooltip = `Tickets: ${Math.round(
+              row.__meta.assumptions.projected_monthly_tickets
+            ).toLocaleString()} | Spend: ${Estimator.formatCurrency(
+              row.__meta.assumptions.projected_cloud_spend,
+              row.__meta.currency || comparison.results[0]?.currency || 'USD'
+            )} | Coverage x${row.__meta.assumptions.coverage_multiplier}`;
+
+            tr.innerHTML = `
+              <td title="${row.__meta.notes || ''}">${row.Vendor}</td>
+              <td>${row.Monthly}</td>
+              <td>${row.Annual}</td>
+              <td title="Assumes ${assumptionsTooltip}">${row['Cost/Ticket']}</td>
+              <td>${renderBadge(row.__meta)}</td>
+              <td>${row.Notes}</td>
+            `;
+            resultsTableBody.appendChild(tr);
+          });
+
+          const monthlySeries = Estimator.buildMonthlyCostSeries(comparison);
+          const annualSeries = {
+            labels: comparison.results.map((r) => r.vendor_name),
+            data: comparison.results.map((r) => r.annual_cost),
+            currency: comparison.results[0]?.currency || 'USD',
+          };
+
+          renderBarChart(monthlyChartEl, monthlySeries, 'Monthly cost comparison');
+          renderBarChart(annualChartEl, annualSeries, 'Annualized cost comparison');
+        }
+
+        function renderBarChart(container, series, titleText) {
+          container.dataset.series = JSON.stringify(series);
+          container.innerHTML = '';
+
+          const title = document.createElement('div');
+          title.className = 'chart-title';
+          title.textContent = titleText;
+          container.appendChild(title);
+
+          if (!series.labels.length) {
+            const empty = document.createElement('p');
+            empty.className = 'chart-empty';
+            empty.textContent = 'Run a scenario to populate this chart.';
+            container.appendChild(empty);
+            return;
+          }
+
+          const maxValue = Math.max(...series.data, 0);
+
+          series.labels.forEach((label, index) => {
+            const value = series.data[index] || 0;
+            const row = document.createElement('div');
+            row.className = 'bar-row';
+
+            const labelEl = document.createElement('span');
+            labelEl.className = 'bar-label';
+            labelEl.textContent = label;
+
+            const track = document.createElement('div');
+            track.className = 'bar-track';
+
+            const fill = document.createElement('span');
+            fill.className = 'bar-fill';
+            const widthPercent = maxValue ? (value / maxValue) * 100 : 0;
+            const clamped = Math.max(8, Math.min(100, widthPercent || 0));
+            fill.style.width = `${clamped}%`;
+            fill.textContent = Estimator.formatCurrency(value, series.currency);
+
+            track.appendChild(fill);
+            row.appendChild(labelEl);
+            row.appendChild(track);
+            container.appendChild(row);
+          });
+        }
+
+        function renderBadge(result) {
+          const badge = document.createElement('span');
+          badge.className = `badge ${result.meets_sla ? 'success' : 'warning'}`;
+          badge.textContent = result.meets_sla ? 'Meets SLA' : 'SLA Gaps';
+          if (!result.meets_sla && result.sla_gaps?.length) {
+            badge.title = result.sla_gaps.join('\n');
+          }
+          return badge.outerHTML;
+        }
+
+        function addScenario(scenario) {
+          const index = scenarios.push({ ...scenario }) - 1;
+          const item = document.createElement('li');
+          item.dataset.index = String(index);
+
+          const body = document.createElement('div');
+          body.className = 'scenario-list__body';
+
+          const name = document.createElement('span');
+          name.className = 'scenario-list__name';
+          name.textContent = scenario.scenario_name || 'Scenario';
+
+          const meta = document.createElement('span');
+          meta.className = 'scenario-list__meta';
+          meta.textContent = buildScenarioMeta(scenario);
+
+          body.appendChild(name);
+          body.appendChild(meta);
+
+          const actions = document.createElement('div');
+          actions.className = 'scenario-list__actions';
+
+          const runButton = document.createElement('button');
+          runButton.type = 'button';
+          runButton.dataset.index = String(index);
+          runButton.className = 'ghost';
+          runButton.textContent = 'Run';
+
+          actions.appendChild(runButton);
+
+          item.appendChild(body);
+          item.appendChild(actions);
+          scenarioList.appendChild(item);
+
+          if (scenarioEmpty) {
+            scenarioEmpty.hidden = scenarios.length > 0;
+          }
+
+          setActiveScenario(index);
+        }
+
+        scenarioList.addEventListener('click', (event) => {
+          const button = event.target.closest('button[data-index]');
+          if (!button) return;
+          const idx = Number(button.dataset.index);
+          const vendors = readVendors();
+          const scenario = scenarios[idx];
+          if (!scenario) return;
+          const comparison = Estimator.compareVendors(vendors, scenario);
+          renderValidation(comparison.validation.errors);
+          if (comparison.validation.valid) {
+            renderResults(comparison);
+            setActiveScenario(idx);
+          }
+        });
+
+        scenarioForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          const scenario = readScenarioFromForm();
+          const vendors = readVendors();
+          const comparison = Estimator.compareVendors(vendors, scenario);
+          renderValidation(comparison.validation.errors);
+          if (comparison.validation.valid) {
+            renderResults(comparison);
+            setActiveScenario(-1);
+          }
+        });
+
+        addScenarioBtn.addEventListener('click', () => {
+          const scenario = readScenarioFromForm();
+          addScenario(scenario);
+        });
+
+        vendorFileInput.addEventListener('change', (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            vendorsTextarea.value = reader.result;
+          };
+          reader.readAsText(file);
+        });
+
+        exportJsonBtn.addEventListener('click', () => {
+          if (!lastComparison) return;
+          const blob = new Blob([JSON.stringify(lastComparison, null, 2)], {
+            type: 'application/json',
+          });
+          triggerDownload(blob, `${lastComparison.scenario_name || 'scenario'}-comparison.json`);
+        });
+
+        exportCsvBtn.addEventListener('click', () => {
+          if (!lastComparison) return;
+          const rows = lastComparison.results.map((result) => [
+            result.vendor_name,
+            result.monthly_cost,
+            result.annual_cost,
+            result.effective_cost_per_ticket,
+            result.meets_sla ? 'Meets' : 'Gaps',
+            (result.sla_gaps || []).join(' | '),
+            result.notes || '',
+          ]);
+          const header = ['Vendor', 'Monthly', 'Annual', 'Cost/Ticket', 'SLA Fit', 'SLA Gaps', 'Notes'];
+          const csv = [header, ...rows]
+            .map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          triggerDownload(blob, `${lastComparison.scenario_name || 'scenario'}-comparison.csv`);
+        });
+
+        function triggerDownload(blob, filename) {
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+
+        loadDefaultVendors();
+        addScenario(readScenarioFromForm());
+      })();
+    </script>
+  </body>
+</html>
